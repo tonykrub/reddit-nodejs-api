@@ -48,13 +48,13 @@ var request = require('request'); // this is for week5's project
 var cheerio = require('cheerio'); // this is for week5's project
 
 // The middleware
-function checkLoginToken(request, response, next) {  // this whole function is from the instruction of the exercise  (but made a small change below)
+function checkLoginToken(request, response, next) {  
   // check if there's a SESSION cookie...
   if (request.cookies.SESSION) {  // in the browser of the each user, there is a cookie which contains what we call 'SESSION' (session cookie). And this SESSION is a string. On the other hand at the database side, we also store a token for this user. And this token needs to match the cookie from the user. This helps us identify that it is really that user. Remember that in the database there are many tokens for different users that are stored. 
     redditAPI.getUserFromSession(request.cookies.SESSION, function(err, user) {   // because we have 'getUserFromSession' here, we also need to create this 'getUserFromSession' function in reddit.js file.
       // if we get back a user object, set it on the request. From now on, this request looks like it was made by this user as far as the rest of the code is concerned
       if (user) {
-        request.loggedInUser = user[0];   // here i made slight changes from ziad's. Instead of using only 'user', I use user[0] because here there are many users in the array. (request.loggedInUser does not have only 1 user but can have more than one users.) To access an array, we use []. Mysql always return an array. (this is from the database side)
+        request.loggedInUser = user[0];   // Instead of using only 'user', I use user[0] because here there are many users in the array. (request.loggedInUser does not have only 1 user but can have more than one users.) To access an array, we use []. Mysql always return an array. (this is from the database side)
       }  // if you console.log(request.loggedInUser), you will see that request.loggedInUser has more than one users. That is why we need to do user[0]. Here I console.log('loggedinuser', request.loggedInUser) in the app.post part for 'vote' down below. 
       next();
     });
@@ -73,56 +73,18 @@ app.use(checkLoginToken);
 
 
 
-app.get('/posts', function(req,res){   // we use '/posts' because it is mentioned in the instruction of this exercise  //  took this from the previous exercise.
+app.get('/posts', function(req,res){   
     
       redditAPI.getAllPosts(function(err,posts){  // here we only pass callback function. Actually this getAllPosts also needs 'options' as parameter, but according to this function in reddit.js file, if we dont pass 'options', it will use 25. 
   if (err) {
       console.log(err);
   }
   else {
-      res.render('post-list', {posts: posts});// this is also from the exercise's instruction
-      }
+      res.render('post-list', {posts: posts});
+  }
     });
 });
-// below is the orginal version of the post-list.pug file before adding the vote button
-// extends layout.pug
 
-// block title
-//   title Homepage
-  
-// block content
-//   h1 Welcome to Reddit!
-//   ul.contents-list
-//     each post in posts
-//       li.content-item
-//         h2.content-item__title
-//         a(href=post.url)= post.title
-//         p= 'Created by ' + post.user.username
-//         p= 'Created on ' + post.createdAt
-        
-// below is the version of the post-list.pug file after adding the vote button
-// extends layout.pug
-
-// block title
-//   title Homepage
-  
-// block content
-//   h1 Welcome to Reddit!
-//   ul.contents-list
-//     each post in posts
-//       li.content-item
-//         h2.content-item__title
-//         a(href=post.url)= post.title
-//         p= 'Created by ' + post.user.username
-//         p= 'Created on ' + post.createdAt
-//         form(action='/vote', method='post')    // from this line until the end of this post-list.pug file, got it by converting what is given in the instruction of the exercise for this part into pug by using http://html2pug.com/
-//           input(type='hidden', name='vote', value='1')
-//           input(type='hidden', name='postId', value='XXXX')
-//           button(type='submit') upvote this
-//         form(action='/vote', method='post')
-//           input(type='hidden', name='vote', value='-1')
-//           input(type='hidden', name='postId', value='XXXX')
-//           button(type='submit') downvote this
 
 
 
@@ -139,7 +101,7 @@ app.post('/signup', function(request, response) { // actually we can also pass '
     redditAPI.newUserSignUp(request.body.username, request.body.password, function(err, result) {
         if (err) {
             //console.log(err.stack);
-            response.status(500).send('something went wrong: ' + err.stack);  // this is done by ziad
+            response.status(500).send('something went wrong: ' + err.stack);  
         }
         else {
             response.redirect('/login');  // once new user has signed up, then redirect him/her to login page.
@@ -239,7 +201,7 @@ app.get('/login', function(request, response) {
 });
 
 // In the request handler:
-app.post('/login', function(request, response) {  // this whole function is from the exercise's instruction
+app.post('/login', function(request, response) { 
     // code to login a user
   // hint: you'll have to use response.cookie here
   redditAPI.checkLogin(request.body.username, request.body.password, function(err, user) {  
@@ -454,7 +416,7 @@ app.get('/logout', function(request, response) {
 // all the below functions, downwards on, are for week5's workshop
 
 app.get('/suggestTitle', function(req, res) {  // here we use 'req' instead of 'request' so that it would be the same 'request' as we will make a web request (using the request NPM package) later (as per the workshop's instruction). Same reason as for why we use 'res' here instead of 'response'
- // this app.get('/suggestTitle') is from the exercise's instruction
+ 
  // when review this 'suggest title button' exercise, also look at front-end-files.js file which is located under 'public' as well because there is a function there that is related to this 'suggested title button'
   var url = req.query.url;   // got request.query.url from the exercise's instruction
  // var url = 'http://' + req.query.url; // use this instead of the above only when the url input from the user has no 'http://' in the front. However, because normally Chrome will add 'http://', so we don't really need to declare a variable like this, but could do it like the above instead. In the case where the user only input 'www.' without having 'http://' in front of 'www', we also have to add 'http://' in front and declare the variable like this line, otherwise it won't work. However, in general people copy the url from a browser (which will automatically include 'http://'), and paste it in the 'url' field of the 'create post' form. Therefore we don't really need to add 'http://' in the front when we declare the variable like what we did here in this line. 
